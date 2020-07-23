@@ -1,7 +1,8 @@
 library(readr)
 library(deplyr)
 library(purrr)
-library(ggplot2)
+library(viridis)
+library(usmap)
 
 data <- read.csv("us-states.csv")
 
@@ -27,6 +28,8 @@ death_ratio_state_plot
 
 # Isolate cluster
 # Isolate timespan
+
+
 
 # Show deaths per weekday
 deaths_per_day_data <- data%>%
@@ -67,9 +70,24 @@ combined_chart <- ggplot(death_rate_data, aes(x=day_of_the_week)) +
   # multiply by 200k to bring up to same scale
   geom_line(aes(y=200000*deaths_cases_percent), size = 1.5, color="red", group=1) +
   # divide secondary y axis by 200k to be accurate with line data
-  scale_y_continuous(sec.axis = sec_axis(~./200000))
+  scale_y_continuous(sec.axis = sec_axis(~./200000, name="Deaths per 100 Cases"))
 
-combined_chart
-                         
+combined_chart   
 
-# Show coloured map
+
+
+# Show coloured map of cases
+cases_fips_data <- data%>%
+  group_by(fips)%>%
+  summarize(
+    sum_cases=sum(cases),
+    sum_deaths=sum(deaths)
+  )
+
+state_map <- us_map(regions = "states")
+
+cases_map <- plot_usmap("states", data = cases_fips_data, value="sum_cases") +
+  scale_fill_continuous(name="Cases by State", low = "#FDEDEC", high = "red", guide = FALSE) +
+  theme(legend.position = "right")
+
+cases_map
